@@ -5,7 +5,9 @@ from .battle import Battle
 from .data_manager import get_trainer, update_trainer, load_pokedex
 from .models import Pokemon, Skill
 from .config import Type
-
+from . import data_manager
+from astrbot.api.star import StarTools
+from pathlib import Path
 import random
 
 
@@ -18,6 +20,10 @@ import random
 class PokemonPlugin(Star):
     def __init__(self, context: Context):
         super().__init__(context)
+        base_data_dir = StarTools.get_data_dir()
+        data_dir = Path(base_data_dir)
+        data_dir.mkdir(parents=True, exist_ok=True)
+        data_manager.init_data_dir(data_dir)
         self.battles = {}
         self.waiting_players = []
 
@@ -153,37 +159,6 @@ class PokemonPlugin(Star):
         pid = random.choice(starter_ids)
         pokemon = await self._create_pokemon(trainer, pid)  # 新调用，去掉event，获取返回值
         yield event.plain_result(f"捕捉成功：{pokemon.name}")  # 自己发送消息
-
-    async def _create_pokemon(self, trainer, pid, starter=False):
-        base_data = self.pokedex[pid]
-        pokemon = Pokemon(
-            id=pid,
-            name=base_data["name"],
-            types=[Type(t) for t in base_data["types"]],
-            base_hp=base_data["base_hp"],
-            base_attack=base_data["base_attack"],
-            base_defense=base_data["base_defense"],
-            base_sp_attack=base_data["base_sp_attack"],
-            base_sp_defense=base_data["base_sp_defense"],
-            base_speed=base_data["base_speed"],
-            level=1,
-            skills=[Skill.from_dict(s) for s in base_data["skills"][:4]]
-        )
-        trainer.add_pokemon(pokemon)
-        update_trainer(trainer)
-        return pokemon  # 返回精灵对象，让调用者自己发消息
-    @filter.command("背包")
-    async def cmd_bag(self, event: AstrMessageEvent):
-        trainer = get_trainer(self.get_user_id(event), self.get_user_name(event))
-        if not trainer.party:
-            yield event.plain_result("你还没有精灵，请先选择初始精灵")
-            return
-        msg = f"{trainer.name} 的精灵：\n"
-        for i, p in enumerate(trainer.party):
-            status = "★" if i == trainer.active_pokemon_index else " "
-            msg += f"{i+1}. [{status}] {p.name} Lv.{p.level} HP:{p.current_hp}/{p.max_hp}\n"
-        yield event.plain_result(msg)
-
     # ------------------------- 对战命令 -------------------------
 
     @filter.command("挑战")
@@ -439,7 +414,7 @@ class PokemonPlugin(Star):
         user_id = event.get_sender_id()
         trainer = get_trainer(user_id)
 
-        if index < 0 or index >= len(trainer.party):
+        if index <= 0 or index >= len(trainer.party):
             yield event.plain_result("索引超出队伍范围。")
             return
 
@@ -469,7 +444,7 @@ class PokemonPlugin(Star):
         user_id = event.get_sender_id()
         trainer = get_trainer(user_id)
 
-        if index < 0 or index >= len(trainer.party):
+        if index <= 0 or index >= len(trainer.party):
             yield event.plain_result("索引超出队伍范围。")
             return
 
