@@ -1,11 +1,10 @@
-# metadata.yaml
 name: astrbot_plugin_pokemon
-desc: 一个简单的小游戏，玩家可以使用精灵进行pvp对战。精灵有自己的属性并且存在克制关系。回合制。
+desc: 一个类似宝可梦的精灵对战插件，支持捕捉、培养、对战。
 author: Xilin153624
-version: v1.0.0          # 请替换为实际版本号
-repo: https://github.com/Xilin153624/astrbot_plugin_pokemon/tree/main
+version: v1.0.0          # 或实际版本号
+repo: https://github.com/Xilin153624/astrbot_plugin_pokemon
 tags:
   - 游戏
   - 精灵
   - 对战
-dependencies: []          # 如果有依赖其他插件，在此列出
+dependencies: []
